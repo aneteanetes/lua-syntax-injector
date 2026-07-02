@@ -2,11 +2,15 @@
   "name": "lua-md-injector",
   "displayName": "Lua MD Injector",
   "description": "Inject Lua autocomplete and highlighting into Markdown files via //% and //%()",
-  "version": "1.0.166",
+  "version": "1.0.197",
   "engines": {
     "vscode": "^1.125.0"
   },
-  "publisher": "anete.anetes", 
+  "publisher": "aneteanetes",
+  "icon": "luamdinjicon.png",
+  "repository": {
+    "url": "https://github.com/aneteanetes/lua-md-injector"
+  },
   "categories": [
     "Programming Languages"
   ],

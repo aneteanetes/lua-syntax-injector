@@ -3,7 +3,7 @@
 VS Code extension for injecting lua code inside *.md files.
 
 ## License
-MIT - 
+MIT - Nothing is promised, use at your own risk
 
 ## Common
 
@@ -29,15 +29,13 @@ Unfortunately, lua servers need physical files for link with other files inside 
 ## Development
 
 95% vibecoded:
-* 166 generations
-* ~700.000 tokens spent
-* 10 context-resets
-* Average context size: 1-1.7m tokens
-* ~12 hours of 'testing development'
+* 197 generations
+* ~800.000 tokens spent
+* 25 context-resets
+* Average context size: 1m-1.7m tokens
+* ~16 hours of 'testing development'
 * Worst descision ever
 
-## License
-MIT - Nothing is promised, use at your own risk
-
+> You can track generations count by version postfix.
 
 **Enjoy!**

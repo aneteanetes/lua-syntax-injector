@@ -1,32 +1,66 @@
 {
   "scopeName": "markdown.lua.injector",
-  "injectionSelector": "L:text.html.markdown -meta.code",
+  "injectionSelector": "L:text.html.markdown",
   "patterns": [
     {
-      "comment": "Brackets: //%(lua)",
-      "match": "(//%)(\\()([^)]*)(\\))",
-      "captures": {
-        "1": { "name": "keyword.control.directive.md-sharp" },
-        "2": { "name": "meta.brace.round.directive.begin.lua" },
-        "3": { 
-          "patterns": [
-            { "include": "source.lua" }
-          ]
-        },
-        "4": { "name": "meta.brace.round.directive.end.lua" }
-      }
+      "comment": "intercept md inline with //%",
+      "begin": "(`)(?=[^`]*//%)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.raw.markdown" }
+      },
+      "end": "(`)",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.raw.markdown" }
+      },
+      "name": "markup.inline.raw.string.markdown",
+      "patterns": [
+        { "include": "#directive-with-brackets" },
+        { "include": "#directive-without-brackets" }
+      ]
     },
     {
-      "comment": "First-space: //%lua (space or EOL)",
+      "comment": "text inject",
+      "include": "#directive-with-brackets"
+    },
+    {
+      "comment": "text inject 2",
+      "include": "#directive-without-brackets"
+    }
+  ],
+  "repository": {
+    "directive-with-brackets": {
+      "begin": "(//%)(\\()",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.directive.md-sharp" },
+        "2": { "name": "meta.brace.round.directive.begin.lua" }
+      },
+      "end": "(\\))",
+      "endCaptures": {
+        "1": { "name": "meta.brace.round.directive.end.lua" }
+      },
+      "contentName": "meta.embedded.inline.lua source.lua",
+      "patterns": [
+        {
+          "begin": "\\(",
+          "end": "\\)",
+          "patterns": [
+            { "include": "source.lua" },
+            { "include": "$self" }
+          ]
+        },
+        { "include": "source.lua" }
+      ]
+    },
+    "directive-without-brackets": {
       "begin": "(//%)",
       "beginCaptures": {
         "1": { "name": "keyword.control.directive.md-sharp" }
       },
-      "end": "(?=\\s|$)",
+      "end": "(?=\\s|`|$)",
       "contentName": "meta.embedded.inline.lua source.lua",
       "patterns": [
         { "include": "source.lua" }
       ]
     }
-  ]
+  }
 }

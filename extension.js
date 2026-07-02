@@ -5,33 +5,44 @@ const path = require('path');
 // debounce (cuz lua server only read files from disk)
 let writeTimeout = null;
 
-class MarkdownLuaMapper {
-    static createVirtualLuaContent(mdText) {
+class MarkdownLuaMapper { 
+    
+        static createVirtualLuaContent(mdText) {
         const lines = mdText.split(/\r?\n/);
         
+        // regexp:
+        // 1) ether //%(...with brackets balance)
+        // 2) either //%... space
+        const injectRegex = /\/\/%(?:\((?:[^()]+|\([^()]*\))*\)|\S+)/g;
+
         const processedLines = lines.map(line => {
-            if (!line.includes('//%')) {
-                return ' '.repeat(line.length);
-            }
+            // clearing injects
+            let lineBuffer = line.split('');
+            
+            let match;
+            injectRegex.lastIndex = 0;
 
-            const lineBuffer = line.split('');
+            while ((match = injectRegex.exec(line)) !== null) {
+                const fullMatch = match[0];
+                const startIdx = match.index;
 
-            if (line.includes('//%(')) {
-                const startTrigger = line.indexOf('//%(');
-                const endBracket = line.lastIndexOf(')');
+                if (fullMatch.startsWith('//%(')) {
+                    // case1 '//%(' (4 chars)
+                    lineBuffer[startIdx] = ' ';
+                    lineBuffer[startIdx + 1] = ' ';
+                    lineBuffer[startIdx + 2] = ' ';
+                    lineBuffer[startIdx + 3] = ' ';
 
-                for (let i = 0; i < startTrigger + 4; i++) {
-                    lineBuffer[i] = ' ';
-                }
-                if (endBracket !== -1) {
-                    for (let i = endBracket; i < lineBuffer.length; i++) {
-                        lineBuffer[i] = ' ';
+                    // space last bracket ')'
+                    const endIdx = startIdx + fullMatch.length - 1;
+                    if (lineBuffer[endIdx] === ')') {
+                        lineBuffer[endIdx] = ' ';
                     }
-                }
-            } else {
-                const startTrigger = line.indexOf('//%');
-                for (let i = 0; i < startTrigger + 3; i++) {
-                    lineBuffer[i] = ' ';
+                } else {
+                    // case2 '//%' (3 chars)
+                    lineBuffer[startIdx] = ' ';
+                    lineBuffer[startIdx + 1] = ' ';
+                    lineBuffer[startIdx + 2] = ' ';
                 }
             }
 
@@ -40,6 +51,8 @@ class MarkdownLuaMapper {
 
         return processedLines.join('\n');
     }
+
+
 
     static isCursorInLua(document, position) {
         const lineText = document.lineAt(position.line).text;
@@ -53,7 +66,7 @@ class MarkdownLuaMapper {
 
         const targetDir = path.join(workspaceFolder.uri.fsPath, '.git');
         
-        // Генерируем уникальное имя файла для каждого MD-файла, чтобы они не конфликтовали
+        // unique name for each md file
         const safeName = document.uri.fsPath.replace(/[^a-zA-Z0-9]/g, '_') + '.lua';
         const tempFilePath = path.join(targetDir, safeName);
 
@@ -108,11 +121,11 @@ function activate(context) {
                 const mdText = document.getText();
                 const virtualLuaContent = MarkdownLuaMapper.createVirtualLuaContent(mdText);
                 
-                // Ждем пока файл гарантированно запишется на диск
+                // waitin write
                 const fileUri = await MarkdownLuaMapper.syncVirtualCache(document, virtualLuaContent);
                 if (!fileUri) return undefined;
 
-                // Запрашиваем автокомплит напрямую по URI (без вызова медленного openTextDocument)
+                // autocomplete uri (no openTextDocument)
                 const completions = await vscode.commands.executeCommand(
                     'vscode.executeCompletionItemProvider',
                     fileUri,
