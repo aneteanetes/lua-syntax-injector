@@ -1,0 +1,32 @@
+{
+  "scopeName": "markdown.lua.injector",
+  "injectionSelector": "L:text.html.markdown -meta.code",
+  "patterns": [
+    {
+      "comment": "Brackets: //%(lua)",
+      "match": "(//%)(\\()([^)]*)(\\))",
+      "captures": {
+        "1": { "name": "keyword.control.directive.md-sharp" },
+        "2": { "name": "meta.brace.round.directive.begin.lua" },
+        "3": { 
+          "patterns": [
+            { "include": "source.lua" }
+          ]
+        },
+        "4": { "name": "meta.brace.round.directive.end.lua" }
+      }
+    },
+    {
+      "comment": "First-space: //%lua (space or EOL)",
+      "begin": "(//%)",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.directive.md-sharp" }
+      },
+      "end": "(?=\\s|$)",
+      "contentName": "meta.embedded.inline.lua source.lua",
+      "patterns": [
+        { "include": "source.lua" }
+      ]
+    }
+  ]
+}
