@@ -1,5 +1,5 @@
 {
-  "name": "lua-md-injector",
+  "name": "lua-syntax-injector",
   "displayName": "Lua Syntax Injector",
   "description": "Inject Lua autocomplete and highlighting into almost all files via //% and //%()",
   "version": "1.0.260",
@@ -9,7 +9,7 @@
   "publisher": "aneteanetes",
   "icon": "luamdinjicon.png",
   "repository": {
-    "url": "https://github.com/aneteanetes/lua-md-injector"
+    "url": "https://github.com/aneteanetes/lua-syntax-injector"
   },
   "categories": [
     "Programming Languages"
