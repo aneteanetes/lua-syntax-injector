@@ -1,6 +1,8 @@
-# Lua MD Injector for VS Code
+# Lua Syntax Injector for VS Code
 
-VS Code extension for injecting lua code inside *.md files.
+VS Code extension for injecting lua code inside other files.
+
+Mostly used for generate CRPG books by https://github.com/aneteanetes/mdbooksharp
 
 ## License
 MIT - Nothing is promised, use at your own risk
@@ -9,14 +11,10 @@ MIT - Nothing is promised, use at your own risk
 
 You can write Lua code inside other files by `//%` sequence: 
 
-> #md header with //%'text':gsub('.$','d')
-
-or
-
-> #md header with_//%('text':lower())_inside text
+![example of highlight](example.png)
 
 ## Limitations
-This extension is NOT run lua code. But you can use https://github.com/aneteanetes/mdbooksharp for run this lua injections
+This extension **is NOT** run lua code. But you can use https://github.com/aneteanetes/mdbooksharp for exec this lua injections
 
 ## Features
 
