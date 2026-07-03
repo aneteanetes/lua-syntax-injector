@@ -33,9 +33,9 @@ Unfortunately, lua servers need physical files for link with other files inside 
 ## Development
 
 95% vibecoded with `Gemini 3.5 Flash`:
-* 260 generations
-* ~1.300.000 tokens spent
-* 40 context-resets
+* 281 generations
+* ~1.500.000 tokens spent
+* 43 context-resets
 * Average context size: 1m-1.7m tokens
 * ~20 hours of 'testing development'
 * Worst descision ever

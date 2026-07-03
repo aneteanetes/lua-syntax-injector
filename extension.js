@@ -6,17 +6,17 @@ let writeTimeout = null;
 
 class MarkdownLuaMapper { 
     
+    
     static createVirtualLuaContent(mdText) {
         const lines = mdText.split(/\r?\n/);
         
-        // Регулярка захватывает: 1) //%(...) или 2) //%... до конца слова/строки
         const injectRegex = /\/\/%(?:\((?:[^()]+|\([^()]*\))*\)|[^\s`'"\),]+)/g;
 
         const processedLines = lines.map(line => {
             let match;
             injectRegex.lastIndex = 0;
             
-            // Создаем пустую строку из пробелов той же длины, чтобы сохранить позиции символов
+            // empty string for sync position
             let cleanLine = ' '.repeat(line.length).split('');
 
             while ((match = injectRegex.exec(line)) !== null) {
@@ -24,8 +24,8 @@ class MarkdownLuaMapper {
                 const startIdx = match.index;
 
                 if (fullMatch.startsWith('//%(')) {
-                    // Случай '//%(' -> заменяем '//%(' на пробелы, а внутренности Lua переносим как есть
-                    // Также заменяем закрывающую скобку ')' на пробел
+                    // brackets case: '//%(' -> spaces, lua as is
+                    // close bracket to space
                     const luaContentStart = startIdx + 4;
                     const luaContentEnd = startIdx + fullMatch.length - 1;
 
@@ -33,7 +33,7 @@ class MarkdownLuaMapper {
                         cleanLine[i] = line[i];
                     }
                 } else {
-                    // Случай '//%' -> заменяем '//%' на пробелы, остальное переносим
+                    // non brackets caseL '//%' -> space, lua as is
                     const luaContentStart = startIdx + 3;
                     const luaContentEnd = startIdx + fullMatch.length;
 
@@ -58,8 +58,6 @@ class MarkdownLuaMapper {
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
         if (!workspaceFolder) return null;
 
-        // Внимание: папка .git может игнорироваться Lua-сервером по умолчанию!
-        // Если автокомплит всё равно пустой, замените '.git' на '.vscode/LuaInjections'
         const targetDir = path.join(workspaceFolder.uri.fsPath, '.git', 'lua-cache');
         
         const safeName = document.uri.fsPath.replace(/[^a-zA-Z0-9]/g, '_') + '.lua';
@@ -86,15 +84,13 @@ class MarkdownLuaMapper {
                     }
                     fs.writeFileSync(cache.path, virtualLuaContent, 'utf8');
 
-                    // КРИТИЧЕСКИЙ ШАГ: Оповещаем VS Code и Lua-сервер, что файл обновился.
-                    // Открываем его в фоне (без показа пользователю).
                     const doc = await vscode.workspace.openTextDocument(cache.uri);
                     
                     resolve(cache.uri);
                 } catch (e) {
                     resolve(null);
                 }
-            }, 50); // Небольшой таймаут для дебаунса
+            }, 50);
         });
     }
 }
@@ -113,7 +109,6 @@ function activate(context) {
                 const fileUri = await MarkdownLuaMapper.syncVirtualCache(document, virtualLuaContent);
                 if (!fileUri) return undefined;
 
-                // Запрашиваем автокомплит у Lua-сервера для нашего виртуального файла
                 const completions = await vscode.commands.executeCommand(
                     'vscode.executeCompletionItemProvider',
                     fileUri,
@@ -121,26 +116,37 @@ function activate(context) {
                     contextProvider.triggerCharacter
                 );
 
-                if (!completions || !completions.items) return completions;
+                if (!completions || !completions.items) return undefined;
 
-                // Корректируем координаты (Range), чтобы подсказки вставлялись в Markdown-файл, а не в виртуальный
-                completions.items = completions.items.map(item => {
-                    if (item.range) {
-                        if (item.range instanceof vscode.Range) {
-                            item.range = new vscode.Range(position.line, item.range.start.character, position.line, item.range.end.character);
-                        } else if (item.range.inserting instanceof vscode.Range) {
-                            item.range.inserting = new vscode.Range(position.line, item.range.inserting.start.character, position.line, item.range.inserting.end.character);
-                            item.range.replacing = new vscode.Range(position.line, item.range.replacing.start.character, position.line, item.range.replacing.end.character);
+                const mappedItems = completions.items.map(rawItem => {
+                    
+                    //hint obj create
+                    const label = typeof rawItem.label === 'string' ? rawItem.label : rawItem.label.label;
+                    const item = new vscode.CompletionItem(label, rawItem.kind);
+                    
+                    // valuable parts
+                    item.detail = rawItem.detail;
+                    item.documentation = rawItem.documentation;
+                    item.insertText = rawItem.insertText;
+                    item.sortText = rawItem.sortText;
+                    item.filterText = rawItem.filterText;
+
+                    // range correction
+                    if (rawItem.range) {
+                        if (rawItem.range instanceof vscode.Range) {
+                            item.range = new vscode.Range(position.line, rawItem.range.start.character, position.line, rawItem.range.end.character);
+                        } else if (rawItem.range.inserting instanceof vscode.Range) {
+                            item.range = new vscode.Range(position.line, rawItem.range.inserting.start.character, position.line, rawItem.range.inserting.end.character);
+                            item.range.replacing = new vscode.Range(position.line, rawItem.range.replacing.start.character, position.line, rawItem.range.replacing.end.character);
                         }
                     }
-    
                     return item;
                 });
 
-                return new vscode.CompletionList(completions.items, true); ;
+                return new vscode.CompletionList(mappedItems, true);
             }
         },
-        '.', '(', ':', '@', '"', "'" // Добавил кавычки для триггера путей/модулей
+        '.', '(', ':', '@', '"', "'" 
     );
 
     const definitionProvider = vscode.languages.registerDefinitionProvider(
@@ -178,36 +184,38 @@ function activate(context) {
             }
         }
     );
-// Отслеживаем смену позиции курсора
-const cursorMoveListener = vscode.window.onDidChangeTextEditorSelection(async (e) => {
-    const editor = e.textEditor;
-    if (!editor) return;
+        
+    // cursor pos
+    const cursorMoveListener = vscode.window.onDidChangeTextEditorSelection(async (e) => {
+        const editor = e.textEditor;
+        if (!editor) return;
 
-    const document = editor.document;
-    // Нас интересуют только целевые языки (например, html, markdown)
-    if (document.languageId !== 'html' && document.languageId !== 'markdown') return;
+        const document = editor.document;
 
-    const position = editor.selection.active;
-    const lineText = document.lineAt(position.line).text;
-    
-    // Получаем конфигурацию конкретно для языка текущего документа
-    const config = vscode.workspace.getConfiguration('editor', document.uri);
+        // 
+        // if (document.languageId !== 'html' && document.languageId !== 'markdown') return;
 
-    if (lineText.includes('//%')) {
-        // Курсор внутри директивы -> вырубаем текстовые подсказки 'abc'
-        // ConfigurationTarget.WorkspaceFolder применит это только локально, не ломая глобальные настройки
-        if (config.get('wordBasedSuggestions') !== 'off') {
-            await config.update('wordBasedSuggestions', 'off', vscode.ConfigurationTarget.WorkspaceFolder);
+        const position = editor.selection.active;
+        const lineText = document.lineAt(position.line).text;
+        
+        // lagn cfg
+        const config = vscode.workspace.getConfiguration('editor', document.uri);
+
+        if (lineText.includes('//%')) {
+            // cursor in, cut 'abc' completions
+            // ConfigurationTarget.WorkspaceFolder - for local apply
+            if (config.get('wordBasedSuggestions') !== 'off') {
+                await config.update('wordBasedSuggestions', 'off', vscode.ConfigurationTarget.WorkspaceFolder);
+            }
+        } else {
+            // cursor out -> back to matchingDocuments 'abc'
+            if (config.get('wordBasedSuggestions') === 'off') {
+                await config.update('wordBasedSuggestions', undefined, vscode.ConfigurationTarget.WorkspaceFolder);
+            }
         }
-    } else {
-        // Курсор вышел из директивы -> возвращаем дефолтное поведение (true/matchingDocuments)
-        if (config.get('wordBasedSuggestions') === 'off') {
-            await config.update('wordBasedSuggestions', undefined, vscode.ConfigurationTarget.WorkspaceFolder);
-        }
-    }
-});
+    });
 
-context.subscriptions.push(cursorMoveListener);
+    context.subscriptions.push(cursorMoveListener);
 
 }
 

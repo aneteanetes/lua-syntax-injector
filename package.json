@@ -2,7 +2,7 @@
   "name": "lua-syntax-injector",
   "displayName": "Lua Syntax Injector",
   "description": "Inject Lua autocomplete and highlighting into almost all files via //% and //%()",
-  "version": "1.0.260",
+  "version": "1.0.281",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -36,6 +36,35 @@
           "meta.embedded.inline.lua": "lua"
         }
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "[javascript]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[typescript]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[javascriptreact]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[typescriptreact]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[python]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[c]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[cpp]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[csharp]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[go]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[rust]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[java]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[php]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[ruby]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[shellscript]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[swift]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[kotlin]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[css]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[less]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[scss]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[yaml]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[json]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[sql]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[graphql]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[html]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[markdown]": { "editor.quickSuggestions": { "comments": true, "strings": true } },
+      "[xml]": { "editor.quickSuggestions": { "comments": true, "strings": true } }
+    }
+
   }
 }
