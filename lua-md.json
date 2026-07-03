@@ -1,6 +1,6 @@
 {
   "scopeName": "markdown.lua.injector",
-  "injectionSelector": "L:text.html.markdown",
+  "injectionSelector": "L:source, L:text, L:comment, L:string",
   "patterns": [
     {
       "comment": "intercept md inline with //%",
@@ -29,10 +29,11 @@
   ],
   "repository": {
     "directive-with-brackets": {
-      "begin": "(//%)(\\()",
+      "begin": "(?:(//))?(%)(\\()",
       "beginCaptures": {
-        "1": { "name": "keyword.control.directive.md-sharp" },
-        "2": { "name": "meta.brace.round.directive.begin.lua" }
+        "1": { "name": "keyword.control.directive.md-sharp" }, 
+        "2": { "name": "keyword.control.directive.md-sharp" },
+        "3": { "name": "meta.brace.round.directive.begin.lua" }
       },
       "end": "(\\))",
       "endCaptures": {
@@ -52,13 +53,23 @@
       ]
     },
     "directive-without-brackets": {
-      "begin": "(//%)",
+      "begin": "(?:(//))?(%)",
       "beginCaptures": {
-        "1": { "name": "keyword.control.directive.md-sharp" }
+        "1": { "name": "keyword.control.directive.md-sharp" }, 
+        "2": { "name": "keyword.control.directive.md-sharp" }  
       },
-      "end": "(?=\\s|`|$)",
+      "end": "(?=\\s|`|$)", 
       "contentName": "meta.embedded.inline.lua source.lua",
       "patterns": [
+        {
+          "comment": "Перехватываем круглые скобки внутри Lua, чтобы сбалансировать их и не дать правилу закрыться раньше времени",
+          "begin": "\\(",
+          "end": "\\)",
+          "patterns": [
+            { "include": "source.lua" },
+            { "include": "$self" }
+          ]
+        },
         { "include": "source.lua" }
       ]
     }

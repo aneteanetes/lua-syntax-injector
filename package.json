@@ -1,8 +1,8 @@
 {
   "name": "lua-md-injector",
-  "displayName": "Lua MD Injector",
-  "description": "Inject Lua autocomplete and highlighting into Markdown files via //% and //%()",
-  "version": "1.0.197",
+  "displayName": "Lua Syntax Injector",
+  "description": "Inject Lua autocomplete and highlighting into almost all files via //% and //%()",
+  "version": "1.0.260",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -15,7 +15,7 @@
     "Programming Languages"
   ],
   "activationEvents": [
-    "onLanguage:markdown"
+    "onStartupFinished"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -24,7 +24,13 @@
         "scopeName": "markdown.lua.injector",
         "path": "lua-md.json",
         "injectTo": [
-          "text.html.markdown"
+          "source.js", "source.ts", "source.tsx", "source.js.jsx",
+          "source.python", "source.c", "source.cpp", "source.cs",
+          "source.go", "source.rust", "source.java", "source.php",
+          "source.ruby", "source.shell", "source.swift", "source.kotlin",
+          "source.css", "source.less", "source.scss", "source.yaml",
+          "source.json", "source.sql", "source.graphql",
+          "text.html.basic", "text.html.markdown", "text.xml", "text.html"
         ],
         "embeddedLanguages": {
           "meta.embedded.inline.lua": "lua"
